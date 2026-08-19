@@ -1,0 +1,6 @@
+"use server";import {createClient} from "@/lib/supabase/server";import {revalidatePath} from "next/cache";import {z} from "zod";
+const S=z.object({full_name:z.string().min(2),phone:z.string().optional(),national_id:z.string().optional(),date_joined:z.string().min(1),registration_paid:z.coerce.number().min(0)});
+export async function addMember(fd:FormData){const p=S.parse({full_name:fd.get("full_name"),phone:fd.get("phone")||undefined,national_id:fd.get("national_id")||undefined,date_joined:fd.get("date_joined"),registration_paid:fd.get("registration_paid")||0});
+ const s=await createClient();const {data:{user}}=await s.auth.getUser();if(!user)throw new Error("Not authenticated");const {data:profile}=await s.from("profiles").select("organization_id").eq("id",user.id).single();if(!profile)throw new Error("Profile missing");
+ const {data:item,error}=await s.from("members").insert({organization_id:profile.organization_id,...p}).select("id,membership_no").single();if(error)throw new Error(error.message);
+ await s.from("audit_logs").insert({organization_id:profile.organization_id,user_id:user.id,action:"member.created",module:"members",entity_id:item.id,description:`Created ${item.membership_no}`});revalidatePath("/app/members");revalidatePath("/app")}
