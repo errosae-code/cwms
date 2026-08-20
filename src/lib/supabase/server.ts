@@ -1,10 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import type { CookieOptions } from "@supabase/ssr";
 
 type CookieItem = {
   name: string;
   value: string;
-  options?: Parameters<ReturnType<typeof cookies>["set"]>[2];
+  options?: CookieOptions;
 };
 
 export async function createClient() {
@@ -20,10 +21,12 @@ export async function createClient() {
         },
         setAll(items: CookieItem[]) {
           try {
-            items.forEach(({ name, value, options }) =>
-              store.set(name, value, options)
-            );
-          } catch {}
+            items.forEach(({ name, value, options }) => {
+              store.set(name, value, options);
+            });
+          } catch {
+            // Ignore cookie writes from Server Components.
+          }
         },
       },
     }
