@@ -1,0 +1,31 @@
+CWMS v0.4 — Verification & Usability Corrections
+
+Implemented:
+- Members display in existing membership-number ascending order; no renumbering.
+- Member Add form hidden behind + Add New Member modal.
+- Member Edit and safe Delete actions (members with financial history cannot be deleted; use status instead).
+- Contributions display one selected month at a time; previous months remain in reports/statements.
+- Contribution Add/Edit/Delete actions with Audit Log entries.
+- Contribution entry form hidden behind + Add Contribution modal.
+- Loans now show Issue Date and Due Date.
+- Loan Add/Edit/Delete actions; loans with repayments cannot be deleted.
+- Issue Loan form hidden behind + Issue Loan modal.
+- Repayment Add/Edit/Delete actions; loan balances are recalculated after edits/deletes.
+- Repayment form hidden behind + Add Repayment modal.
+- Welfare entry form hidden behind + Add Welfare Entry modal.
+- Member Statement marks future months as Not Yet Due.
+- Monthly Statement contribution status supports Paid / Partial / Unpaid / Not Yet Due and sorts members by number.
+- Monthly Statement includes a cash reconciliation line.
+- Dashboard Active Loans counts all loans with an outstanding balance, with overdue shown separately.
+- Loan interest setting display corrected to 10% format and new-loan calculation handles percentage storage safely.
+- Audit logging expanded for edits/deletes.
+
+Database corrections already applied separately in Supabase:
+- Loan interest setting normalized to 0.10 (10%).
+- Existing provisional welfare entry soft-deleted so Welfare is blank for now.
+- Migration/correction Audit Log entries added.
+
+Safety:
+- Existing member numbers are retained.
+- Existing contributions, loans and repayments are not renumbered or re-imported.
+- Financial deletes use soft-delete where applicable and are logged.

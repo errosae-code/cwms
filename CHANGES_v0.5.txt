@@ -1,0 +1,16 @@
+CWMS v0.5 — Administration & Withdrawal Refunds
+
+Includes all v0.4 usability corrections, plus:
+- Settings renamed to Settings & Administration.
+- Settings controls for monthly contribution, registration fee, loan interest %, repayment months, financial year, opening cash, contribution due day and report title.
+- Optional switches for registration fees in fund cash and outstanding interest in Total Fund Value.
+- New Member Withdrawal & Contribution Refund transaction area under Settings.
+- Refunds preserve original contribution history, reduce cash/fund value, show separately on Member Statement and Monthly Statement, and create Audit Log entries.
+- Recording a refund automatically marks the member Withdrawn.
+- Member Statement shows Gross Contributions, Contribution Refunds and Net Contributions Retained.
+- Monthly Statement includes refunds in Money Out and cash reconciliation.
+- Dashboard shows Gross Contributions and refunded amount separately.
+- Withdrawn members stop accruing expected contributions after their refund/withdrawal month.
+- Welfare remains blank unless a new welfare entry is deliberately recorded.
+
+Important: Raymon Masiga (Member 10) has KES 6,000 historical contributions and is already Withdrawn. The refund transaction is NOT pre-dated because no actual refund date was supplied. Record the KES 6,000 refund from Settings & Administration using the true refund date after deployment.
