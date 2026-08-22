@@ -9,7 +9,7 @@ type CookieItem = {
 };
 
 export async function createClient() {
-  const store = await cookies();
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,15 +17,15 @@ export async function createClient() {
     {
       cookies: {
         getAll() {
-          return store.getAll();
+          return cookieStore.getAll();
         },
         setAll(items: CookieItem[]) {
           try {
             items.forEach(({ name, value, options }) => {
-              store.set(name, value, options);
+              cookieStore.set(name, value, options);
             });
           } catch {
-            // Ignore cookie writes from Server Components.
+            // Server Components may not allow cookie writes.
           }
         },
       },
