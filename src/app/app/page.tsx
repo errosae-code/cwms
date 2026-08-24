@@ -1,4 +1,7 @@
-export const dynamic = "force-dynamic";`r`nexport const revalidate = 0;`r`n`r`nimport {createClient} from "@/lib/supabase/server";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+import {createClient} from "@/lib/supabase/server";
 const money=(n:number)=>`KES ${new Intl.NumberFormat("en-KE").format(n)}`;
 export default async function Home(){const s=await createClient();
  const [c,m,l,w,settings,reps,refundRes,membersReg]=await Promise.all([
@@ -27,5 +30,6 @@ export default async function Home(){const s=await createClient();
  <div className="card"><div className="label">Gross Contributions</div><div className="value blue">{money(contributions)}</div><div className="muted" style={{fontSize:12,marginTop:5}}>Refunded: {money(refunds)}</div></div>
  <div className="card"><div className="label">Outstanding Principal</div><div className="value red">{money(principal)}</div></div></div>
  <div className="cards"><div className="card"><div className="label">Outstanding Interest</div><div className="value red">{money(interest)}</div></div><div className="card"><div className="label">Active Members</div><div className="value">{m.count||0}</div></div><div className="card"><div className="label">Active Loans</div><div className="value">{activeLoans}</div></div><div className="card"><div className="label">Overdue Loans</div><div className="value">{overdue}</div></div></div></>}
+
 
 
