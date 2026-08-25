@@ -10,11 +10,12 @@ export default async function Home(){const s=await createClient();
   s.from("loans").select("principal,outstanding_principal,outstanding_interest,status").is("deleted_at",null),
   s.from("welfare_entries").select("money_in,money_out").is("deleted_at",null),
   s.from("settings").select("opening_cash_balance,include_registration_in_cash,include_outstanding_interest_in_fund").limit(1).maybeSingle(),
-  s.from("repayments").select("amount").is("deleted_at",null),
+  s.from("repayments").select("amount,interest_paid").is("deleted_at",null),
   s.from("member_refunds").select("amount").is("deleted_at",null),
   s.from("members").select("registration_paid").is("deleted_at",null)
  ]);
  const contributions=c.data?.reduce((a,r)=>a+Number(r.amount||0),0)||0;
+ const interestReceived=reps.data?.reduce((a,r)=>a+Number(r.interest_paid||0),0)||0;
  const loansIssued=l.data?.reduce((a,r)=>a+Number(r.principal||0),0)||0;
  const principal=l.data?.reduce((a,r)=>a+Number(r.outstanding_principal||0),0)||0;
  const interest=l.data?.reduce((a,r)=>a+Number(r.outstanding_interest||0),0)||0;
@@ -28,8 +29,10 @@ export default async function Home(){const s=await createClient();
  <div className="card"><div className="label">Current Cash</div><div className="value blue">{money(currentCash)}</div></div>
  <div className="card"><div className="label">Total Fund Value</div><div className="value green">{money(fund)}</div></div>
  <div className="card"><div className="label">Gross Contributions</div><div className="value blue">{money(contributions)}</div><div className="muted" style={{fontSize:12,marginTop:5}}>Refunded: {money(refunds)}</div></div>
- <div className="card"><div className="label">Outstanding Principal</div><div className="value red">{money(principal)}</div></div></div>
+ <div className="card"><div className="label">Interest Received</div><div className="value green">{money(interestReceived)}</div></div><div className="card"><div className="label">Outstanding Principal</div><div className="value red">{money(principal)}</div></div></div>
  <div className="cards"><div className="card"><div className="label">Outstanding Interest</div><div className="value red">{money(interest)}</div></div><div className="card"><div className="label">Active Members</div><div className="value">{m.count||0}</div></div><div className="card"><div className="label">Active Loans</div><div className="value">{activeLoans}</div></div><div className="card"><div className="label">Overdue Loans</div><div className="value">{overdue}</div></div></div></>}
+
+
 
 
 
