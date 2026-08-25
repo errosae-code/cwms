@@ -14,6 +14,20 @@ export default async function Home(){const s=await createClient();
   s.from("member_refunds").select("amount").is("deleted_at",null),
   s.from("members").select("registration_paid").is("deleted_at",null)
  ]);
+
+ const queryErrors = [c,m,l,w,settings,reps,refundRes,membersReg]
+   .filter((r) => r.error);
+
+ if (queryErrors.length > 0) {
+   return (
+     <>
+       <h1>Home</h1>
+       <div className="notice">
+         Unable to load the latest financial data. Please refresh or sign in again.
+       </div>
+     </>
+   );
+ }
  const contributions=c.data?.reduce((a,r)=>a+Number(r.amount||0),0)||0;
  const interestReceived=reps.data?.reduce((a,r)=>a+Number(r.interest_paid||0),0)||0;
  const loansIssued=l.data?.reduce((a,r)=>a+Number(r.principal||0),0)||0;
@@ -31,6 +45,7 @@ export default async function Home(){const s=await createClient();
  <div className="card"><div className="label">Gross Contributions</div><div className="value blue">{money(contributions)}</div><div className="muted" style={{fontSize:12,marginTop:5}}>Refunded: {money(refunds)}</div></div>
  <div className="card"><div className="label">Interest Received</div><div className="value green">{money(interestReceived)}</div></div><div className="card"><div className="label">Outstanding Principal</div><div className="value red">{money(principal)}</div></div></div>
  <div className="cards"><div className="card"><div className="label">Outstanding Interest</div><div className="value red">{money(interest)}</div></div><div className="card"><div className="label">Active Members</div><div className="value">{m.count||0}</div></div><div className="card"><div className="label">Active Loans</div><div className="value">{activeLoans}</div></div><div className="card"><div className="label">Overdue Loans</div><div className="value">{overdue}</div></div></div></>}
+
 
 
 
