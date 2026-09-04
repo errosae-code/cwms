@@ -147,7 +147,20 @@ export default async function Reports({ searchParams }: { searchParams: Promise<
 
     <div className="panel" style={{marginTop:18}}><h3>Fund Position at Month End</h3><div className="summarygrid"><div><span>Closing Cash</span><strong>{money(closingCash)}</strong></div><div><span>Outstanding Principal</span><strong>{money(outstandingPrincipal)}</strong></div><div><span>Outstanding Interest</span><strong>{money(outstandingInterest)}</strong></div><div><span>Total Fund Value</span><strong>{money(totalFundValue)}</strong></div></div><p className="reconcile"><strong>Cash reconciliation:</strong> {money(openingCash)} opening + {money(contributions+repayments+welfareIn+registrationCash)} cash in − {money(loansIssued+welfareOut+refundsThisMonth)} cash out = <strong>{money(closingCash)} closing cash</strong>.</p></div>
 
-    <div className="panel" style={{marginTop:18}}><h3>Member Contribution Status — {monthNames[month-1]}</h3><div className="tablewrap"><table><thead><tr><th>Member</th><th>Status</th><th>Expected</th><th>Paid</th><th>Variance</th><th>Payment Status</th></tr></thead><tbody>{eligibleMembers.map((m:any)=>{
+    <div className="panel contribution-status-panel" style={{marginTop:18}}>
+      <div className="contribution-status-head">
+        <div>
+          <h3>Member Contribution Status</h3>
+          <span>{monthNames[month-1]} {year}</span>
+        </div>
+        <div className="contribution-status-legend">
+          <span className="status-dot paid">Paid</span>
+          <span className="status-dot partial">Partial</span>
+          <span className="status-dot unpaid">Unpaid</span>
+          <span className="status-dot neutral">Not Yet Due</span>
+        </div>
+      </div>
+      <div className="tablewrap contribution-status-wrap"><table className="contribution-status-table"><thead><tr><th>Member</th><th>Status</th><th>Expected</th><th>Paid</th><th>Variance</th><th>Payment</th></tr></thead><tbody>{eligibleMembers.map((m:any)=>{
       const paid=contribByMember.get(m.id)||0;
       const joinedAfterMonth = new Date(`${m.date_joined}T00:00:00`) > selectedMonthEnd;
       const refund=(allRefundsToEnd.data||[]).filter((x:any)=>x.member_id===m.id).sort((a:any,b:any)=>String(a.refund_date).localeCompare(String(b.refund_date)))[0];
@@ -157,9 +170,11 @@ export default async function Reports({ searchParams }: { searchParams: Promise<
       const variance=paid-memberExpected;
       const paymentStatus = !due ? "Not Yet Due" : paid >= expected ? "Paid" : paid > 0 ? "Partial" : "Unpaid";
       const badgeClass = paymentStatus === "Paid" ? "active" : paymentStatus === "Partial" ? "partial" : paymentStatus === "Unpaid" ? "withdrawn" : "neutral";
-      return <tr key={m.id}><td>{m.membership_no} — {m.full_name}</td><td>{m.status}</td><td>{money(memberExpected)}</td><td>{money(paid)}</td><td className={variance<0?"red":variance>0?"green":""}>{money(variance)}</td><td><span className={`badge ${badgeClass}`}>{paymentStatus}</span></td></tr>})}</tbody></table></div></div>
+      const paymentCellClass = paymentStatus === "Paid" ? "payment-paid" : paymentStatus === "Partial" ? "payment-partial" : paymentStatus === "Unpaid" ? "payment-unpaid" : "payment-neutral";
+      return <tr key={m.id}><td className="member-cell"><strong>{m.membership_no}</strong><span>{m.full_name}</span></td><td><span className="member-status">{m.status}</span></td><td className="num">{money(memberExpected)}</td><td className="num">{money(paid)}</td><td className={`num ${variance<0?"red":variance>0?"green":""}`}>{money(variance)}</td><td className={paymentCellClass}><span className={`badge ${badgeClass}`}>{paymentStatus}</span></td></tr>})}</tbody></table></div>
+    </div>
 
-    <div className="panel" style={{marginTop:18}}><h3>Transactions in {monthNames[month-1]}</h3><div className="reportsections">
+    <div className="panel transactions-panel" style={{marginTop:18}}><h3>Transactions in {monthNames[month-1]}</h3><div className="reportsections">
       <div><h4>Contributions</h4><div className="tablewrap"><table><thead><tr><th>Date</th><th>Member</th><th>Reference</th><th>Amount</th></tr></thead><tbody>{monthContrib.data?.length?monthContrib.data.map((r:any,i:number)=><tr key={i}><td>{r.payment_date}</td><td>{r.members?.membership_no} — {r.members?.full_name}</td><td>{r.reference||"-"}</td><td>{money(num(r.amount))}</td></tr>):<tr><td colSpan={4} className="empty">No contributions.</td></tr>}</tbody></table></div></div>
       <div><h4>Loans Issued</h4><div className="tablewrap"><table><thead><tr><th>Date</th><th>Loan</th><th>Member</th><th>Principal</th><th>Interest</th></tr></thead><tbody>{monthLoans.data?.length?monthLoans.data.map((r:any)=><tr key={r.id}><td>{r.issue_date}</td><td>{r.loan_no}</td><td>{r.members?.full_name}</td><td>{money(num(r.principal))}</td><td>{money(num(r.interest_amount))}</td></tr>):<tr><td colSpan={5} className="empty">No loans issued.</td></tr>}</tbody></table></div></div>
       <div><h4>Loan Repayments</h4><div className="tablewrap"><table><thead><tr><th>Date</th><th>Loan / Member</th><th>Principal</th><th>Interest</th><th>Total</th></tr></thead><tbody>{monthReps.data?.length?monthReps.data.map((r:any,i:number)=><tr key={i}><td>{r.payment_date}</td><td>{r.loans?.loan_no} — {r.loans?.members?.full_name}</td><td>{money(num(r.principal_paid))}</td><td>{money(num(r.interest_paid))}</td><td>{money(num(r.amount))}</td></tr>):<tr><td colSpan={5} className="empty">No repayments.</td></tr>}</tbody></table></div></div>
