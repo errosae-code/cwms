@@ -10,12 +10,11 @@ const dateText=(v:unknown)=>v?new Date(`${String(v)}T00:00:00`).toLocaleDateStri
 const kenyaToday=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Nairobi",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
 
 export default async function RepaymentReceipt({params}:{params:Promise<{id:string}>}){
-  const {id}=await params;
-  const s=await createClient();
-  const {data:r}=await s.from("repayments").select("id,amount,interest_paid,principal_paid,payment_date,receipt_no,created_at,loans(loan_no,principal,interest_amount,due_date,members(full_name,membership_no))").eq("id",id).is("deleted_at",null).single();
+  const {id}=await params;const s=await createClient();
+  const {data:r}=await s.from("repayments").select("id,amount,interest_paid,principal_paid,payment_date,receipt_no,created_at,loan_id,loans(loan_no,principal,interest_amount,due_date,members(full_name,membership_no))").eq("id",id).is("deleted_at",null).single();
   if(!r)return <><div className="pagehead"><div><h1>Receipt Not Found</h1><p className="muted">The repayment receipt could not be found.</p></div><Link href="/app/repayments" className="btn light">Back to Repayments</Link></div></>;
   const loan:any=r.loans||{};const member:any=loan.members||{};
-  const {data:allReps}=await s.from("repayments").select("id,amount,interest_paid,principal_paid,payment_date,created_at").eq("loan_id",loan.id||"").is("deleted_at",null).order("payment_date",{ascending:true}).order("created_at",{ascending:true});
+  const {data:allReps}=await s.from("repayments").select("id,amount,interest_paid,principal_paid,payment_date,created_at").eq("loan_id",r.loan_id).is("deleted_at",null).order("payment_date",{ascending:true}).order("created_at",{ascending:true});
   const ordered=allReps||[];const idx=ordered.findIndex((x:any)=>x.id===r.id);const through=idx>=0?ordered.slice(0,idx+1):[r];
   const interestPaidThrough=through.reduce((a:number,x:any)=>a+Number(x.interest_paid||0),0);const principalPaidThrough=through.reduce((a:number,x:any)=>a+Number(x.principal_paid||0),0);
   const outstandingPrincipal=Math.max(0,Number(loan.principal||0)-principalPaidThrough);const outstandingInterest=Math.max(0,Number(loan.interest_amount||0)-interestPaidThrough);const today=kenyaToday();const dueStatus=outstandingPrincipal+outstandingInterest<=0?"cleared":String(loan.due_date||"")<today?"overdue":"active";
