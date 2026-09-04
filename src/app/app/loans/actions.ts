@@ -16,11 +16,14 @@ async function context(){
 }
 
 const normalizedRate=(raw:unknown)=>{const n=Number(raw||0.10);return n>1?n/100:n;};
-const statusFor=(principal:number,interest:number,dueDate:string)=>principal<=0&&interest<=0?"cleared":(new Date(`${dueDate}T23:59:59`)<new Date()?"overdue":"active");
+const kenyaToday=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Nairobi",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+const statusFor=(principal:number,interest:number,dueDate:string)=>principal<=0&&interest<=0?"cleared":dueDate<kenyaToday()?"overdue":"active";
+const validateDates=(issueDate:string,dueDate:string)=>{if(dueDate<issueDate)throw new Error("Due date cannot be earlier than the issue date.");};
 function refresh(){revalidatePath("/app/loans");revalidatePath("/app/repayments");revalidatePath("/app/reports");revalidatePath("/app/member-statement");revalidatePath("/app");}
 
 export async function issueLoan(fd:FormData){
   const p=S.parse({member_id:fd.get("member_id"),principal:fd.get("principal"),issue_date:fd.get("issue_date"),due_date:fd.get("due_date")});
+  validateDates(p.issue_date,p.due_date);
   const {s,user,profile}=await context();
   const {data:settings}=await s.from("settings").select("loan_interest_rate").eq("organization_id",profile.organization_id).single();
   const rate=normalizedRate(settings?.loan_interest_rate);const interest=p.principal*rate;const total=p.principal+interest;
@@ -33,6 +36,7 @@ export async function issueLoan(fd:FormData){
 export async function updateLoan(fd:FormData){
   const id=String(fd.get("id")||"");if(!id)throw new Error("Loan missing");
   const p=S.parse({member_id:fd.get("member_id"),principal:fd.get("principal"),issue_date:fd.get("issue_date"),due_date:fd.get("due_date")});
+  validateDates(p.issue_date,p.due_date);
   const {s,user,profile}=await context();
   const {data:loan}=await s.from("loans").select("loan_no,interest_rate").eq("id",id).eq("organization_id",profile.organization_id).single();
   if(!loan)throw new Error("Loan not found");
