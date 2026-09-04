@@ -2,49 +2,15 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 const S=z.object({loan_id:z.string().uuid(),amount:z.coerce.number().positive(),payment_date:z.string().min(1),receipt_no:z.string().optional()});
-
 async function context(){const s=await createClient();const {data:{user}}=await s.auth.getUser();if(!user)throw new Error("Not authenticated");const {data:profile}=await s.from("profiles").select("organization_id").eq("id",user.id).single();if(!profile)throw new Error("Profile missing");return {s,user,profile};}
-
-async function capacity(s:any,loanId:string,excludeId?:string){
-  const {data:loan}=await s.from("loans").select("principal,interest_amount").eq("id",loanId).is("deleted_at",null).single();if(!loan)throw new Error("Loan not found");
-  let q=s.from("repayments").select("id,amount").eq("loan_id",loanId).is("deleted_at",null);const {data:reps}=await q;
-  const paid=(reps||[]).filter((r:any)=>r.id!==excludeId).reduce((a:number,r:any)=>a+Number(r.amount||0),0);
-  return Math.max(0,Number(loan.principal||0)+Number(loan.interest_amount||0)-paid);
-}
-
-async function recalcLoan(s:any,loanId:string){
-  const {data:loan}=await s.from("loans").select("principal,interest_amount,due_date").eq("id",loanId).is("deleted_at",null).single();if(!loan)return;
-  const {data:reps}=await s.from("repayments").select("id,amount,payment_date,created_at").eq("loan_id",loanId).is("deleted_at",null).order("payment_date",{ascending:true}).order("created_at",{ascending:true});
-  let principal=Number(loan.principal||0),interest=Number(loan.interest_amount||0);
-  for(const r of reps||[]){let remaining=Number(r.amount||0);const interestPaid=Math.min(remaining,interest);remaining-=interestPaid;interest-=interestPaid;const principalPaid=Math.min(remaining,principal);remaining-=principalPaid;principal-=principalPaid;await s.from("repayments").update({interest_paid:interestPaid,principal_paid:principalPaid}).eq("id",r.id);}
-  const status=principal<=0&&interest<=0?"cleared":(new Date(`${loan.due_date}T23:59:59`)<new Date()?"overdue":"active");
-  await s.from("loans").update({outstanding_interest:Math.max(0,interest),outstanding_principal:Math.max(0,principal),status,updated_at:new Date().toISOString()}).eq("id",loanId);
-}
+async function capacity(s:any,loanId:string,excludeId?:string){const {data:loan}=await s.from("loans").select("principal,interest_amount").eq("id",loanId).is("deleted_at",null).single();if(!loan)throw new Error("Loan not found");const {data:reps}=await s.from("repayments").select("id,amount").eq("loan_id",loanId).is("deleted_at",null);const paid=(reps||[]).filter((r:any)=>r.id!==excludeId).reduce((a:number,r:any)=>a+Number(r.amount||0),0);return Math.max(0,Number(loan.principal||0)+Number(loan.interest_amount||0)-paid);}
+function makeReceiptNo(date:string,id:string){return `RCP-${date.replace(/-/g,"")}-${id.replace(/-/g,"").slice(0,8).toUpperCase()}`;}
+async function recalcLoan(s:any,loanId:string){const {data:loan}=await s.from("loans").select("principal,interest_amount,due_date").eq("id",loanId).is("deleted_at",null).single();if(!loan)return;const {data:reps}=await s.from("repayments").select("id,amount,payment_date,created_at").eq("loan_id",loanId).is("deleted_at",null).order("payment_date",{ascending:true}).order("created_at",{ascending:true});let principal=Number(loan.principal||0),interest=Number(loan.interest_amount||0);for(const r of reps||[]){let remaining=Number(r.amount||0);const interestPaid=Math.min(remaining,interest);remaining-=interestPaid;interest-=interestPaid;const principalPaid=Math.min(remaining,principal);remaining-=principalPaid;principal-=principalPaid;await s.from("repayments").update({interest_paid:interestPaid,principal_paid:principalPaid}).eq("id",r.id);}const status=principal<=0&&interest<=0?"cleared":(new Date(`${loan.due_date}T23:59:59`)<new Date()?"overdue":"active");await s.from("loans").update({outstanding_interest:Math.max(0,interest),outstanding_principal:Math.max(0,principal),status,updated_at:new Date().toISOString()}).eq("id",loanId);}
 function refresh(){revalidatePath("/app/repayments");revalidatePath("/app/loans");revalidatePath("/app/reports");revalidatePath("/app/member-statement");revalidatePath("/app");}
-
-export async function recordRepayment(fd:FormData){
-  const p=S.parse({loan_id:fd.get("loan_id"),amount:fd.get("amount"),payment_date:fd.get("payment_date"),receipt_no:fd.get("receipt_no")||undefined});const {s,user,profile}=await context();
-  const available=await capacity(s,p.loan_id);if(p.amount>available+0.005)throw new Error(`Repayment exceeds outstanding balance of KES ${available.toLocaleString()}`);
-  const {data:item,error}=await s.from("repayments").insert({organization_id:profile.organization_id,loan_id:p.loan_id,amount:p.amount,interest_paid:0,principal_paid:0,payment_date:p.payment_date,receipt_no:p.receipt_no,entered_by:user.id}).select("id").single();if(error)throw new Error(error.message);
-  await recalcLoan(s,p.loan_id);await s.from("audit_logs").insert({organization_id:profile.organization_id,user_id:user.id,action:"repayment.created",module:"repayments",entity_id:item.id,description:`KES ${p.amount}`});refresh();
-}
-
-export async function updateRepayment(fd:FormData){
-  const id=String(fd.get("id")||"");if(!id)throw new Error("Repayment missing");
-  const p=S.parse({loan_id:fd.get("loan_id"),amount:fd.get("amount"),payment_date:fd.get("payment_date"),receipt_no:fd.get("receipt_no")||undefined});const {s,user,profile}=await context();
-  const {data:old}=await s.from("repayments").select("loan_id").eq("id",id).eq("organization_id",profile.organization_id).single();if(!old)throw new Error("Repayment not found");
-  const available=await capacity(s,p.loan_id,old.loan_id===p.loan_id?id:undefined);if(p.amount>available+0.005)throw new Error(`Repayment exceeds available outstanding balance of KES ${available.toLocaleString()}`);
-  const {error}=await s.from("repayments").update({loan_id:p.loan_id,amount:p.amount,payment_date:p.payment_date,receipt_no:p.receipt_no||null}).eq("id",id).eq("organization_id",profile.organization_id).is("deleted_at",null);if(error)throw new Error(error.message);
-  if(old.loan_id!==p.loan_id)await recalcLoan(s,old.loan_id);await recalcLoan(s,p.loan_id);
-  await s.from("audit_logs").insert({organization_id:profile.organization_id,user_id:user.id,action:"repayment.updated",module:"repayments",entity_id:id,description:`Updated repayment to KES ${p.amount}`});refresh();
-}
-
-export async function deleteRepayment(fd:FormData){
-  const id=String(fd.get("id")||"");if(!id)throw new Error("Repayment missing");const {s,user,profile}=await context();
-  const {data:r}=await s.from("repayments").select("loan_id,amount").eq("id",id).eq("organization_id",profile.organization_id).single();if(!r)throw new Error("Repayment not found");
-  const {error}=await s.from("repayments").update({deleted_at:new Date().toISOString()}).eq("id",id).eq("organization_id",profile.organization_id).is("deleted_at",null);if(error)throw new Error(error.message);
-  await recalcLoan(s,r.loan_id);await s.from("audit_logs").insert({organization_id:profile.organization_id,user_id:user.id,action:"repayment.deleted",module:"repayments",entity_id:id,description:`Deleted repayment KES ${Number(r.amount||0)}`});refresh();
-}
+export async function recordRepayment(fd:FormData){const p=S.parse({loan_id:fd.get("loan_id"),amount:fd.get("amount"),payment_date:fd.get("payment_date"),receipt_no:fd.get("receipt_no")||undefined});const {s,user,profile}=await context();const available=await capacity(s,p.loan_id);if(p.amount>available+0.005)throw new Error(`Repayment exceeds outstanding balance of KES ${available.toLocaleString()}`);const {data:item,error}=await s.from("repayments").insert({organization_id:profile.organization_id,loan_id:p.loan_id,amount:p.amount,interest_paid:0,principal_paid:0,payment_date:p.payment_date,receipt_no:p.receipt_no?.trim()||null,entered_by:user.id}).select("id").single();if(error)throw new Error(error.message);const receiptNo=p.receipt_no?.trim()||makeReceiptNo(p.payment_date,item.id);if(!p.receipt_no?.trim()){const {error:e}=await s.from("repayments").update({receipt_no:receiptNo}).eq("id",item.id).eq("organization_id",profile.organization_id);if(e)throw new Error(e.message);}await recalcLoan(s,p.loan_id);await s.from("audit_logs").insert({organization_id:profile.organization_id,user_id:user.id,action:"repayment.created",module:"repayments",entity_id:item.id,description:`KES ${p.amount}`});refresh();redirect(`/app/repayments/${item.id}/receipt`);}
+export async function updateRepayment(fd:FormData){const id=String(fd.get("id")||"");if(!id)throw new Error("Repayment missing");const p=S.parse({loan_id:fd.get("loan_id"),amount:fd.get("amount"),payment_date:fd.get("payment_date"),receipt_no:fd.get("receipt_no")||undefined});const {s,user,profile}=await context();const {data:old}=await s.from("repayments").select("loan_id").eq("id",id).eq("organization_id",profile.organization_id).single();if(!old)throw new Error("Repayment not found");const available=await capacity(s,p.loan_id,old.loan_id===p.loan_id?id:undefined);if(p.amount>available+0.005)throw new Error(`Repayment exceeds available outstanding balance of KES ${available.toLocaleString()}`);const {error}=await s.from("repayments").update({loan_id:p.loan_id,amount:p.amount,payment_date:p.payment_date,receipt_no:p.receipt_no?.trim()||makeReceiptNo(p.payment_date,id)}).eq("id",id).eq("organization_id",profile.organization_id).is("deleted_at",null);if(error)throw new Error(error.message);if(old.loan_id!==p.loan_id)await recalcLoan(s,old.loan_id);await recalcLoan(s,p.loan_id);await s.from("audit_logs").insert({organization_id:profile.organization_id,user_id:user.id,action:"repayment.updated",module:"repayments",entity_id:id,description:`Updated repayment to KES ${p.amount}`});refresh();}
+export async function deleteRepayment(fd:FormData){const id=String(fd.get("id")||"");if(!id)throw new Error("Repayment missing");const {s,user,profile}=await context();const {data:r}=await s.from("repayments").select("loan_id,amount").eq("id",id).eq("organization_id",profile.organization_id).single();if(!r)throw new Error("Repayment not found");const {error}=await s.from("repayments").update({deleted_at:new Date().toISOString()}).eq("id",id).eq("organization_id",profile.organization_id).is("deleted_at",null);if(error)throw new Error(error.message);await recalcLoan(s,r.loan_id);await s.from("audit_logs").insert({organization_id:profile.organization_id,user_id:user.id,action:"repayment.deleted",module:"repayments",entity_id:id,description:`Deleted repayment KES ${Number(r.amount||0)}`});refresh();}
