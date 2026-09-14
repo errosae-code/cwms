@@ -36,12 +36,11 @@
     background: #fff !important;
   }
 
-  /* A4 document surface */
+  /* A4 printable document area. */
   .statement-document,
   .receipt-paper {
     width: 100% !important;
     max-width: none !important;
-    min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     border: 0 !important;
@@ -50,7 +49,20 @@
     background: #fff !important;
   }
 
-  /* Keep branded headers together. */
+  /* Receipt fills the A4 safe area and keeps its footer at the bottom. */
+  .receipt-page {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
+  .receipt-paper {
+    min-height: 259mm !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* Keep branded document headers together. */
   .statement-brandbar,
   .receipt-header {
     break-inside: avoid;
@@ -66,16 +78,36 @@
     display: none !important;
   }
 
+  /* Formal A4 receipt header. */
+  .receipt-header {
+    padding: 0 0 5mm !important;
+    border-bottom: 2px solid #102A43 !important;
+  }
+
+  .receipt-rule {
+    display: none !important;
+  }
+
   /* Professional document footer. */
   .statement-footer,
-  .receipt-footer {
+  .receipt-footer,
+  .document-generated {
     display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-end !important;
+    gap: 20px !important;
     break-inside: avoid;
     page-break-inside: avoid;
     margin-top: 24px !important;
     padding-top: 9px !important;
     border-top: 1px solid #CBD5E1 !important;
     font-size: 8.5pt !important;
+  }
+
+  .receipt-paper .document-generated {
+    margin-top: auto !important;
+    padding-top: 10px !important;
+    width: 100% !important;
   }
 
   /* Reports use the existing statement title as their print header. */
