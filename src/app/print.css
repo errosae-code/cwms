@@ -38,5 +38,24 @@
   tr,img { break-inside:avoid; page-break-inside:avoid; }
   .statement-document table,.receipt-table { width:100% !important; }
   .statement-document .panel,.receipt-balance { box-shadow:none !important; }
+
+  /* The member summary contains nine financial columns. Keep the complete table
+     inside the A4 printable width instead of clipping the final balance column. */
+  .contribution-status-panel { width:100% !important; overflow:visible !important; }
+  .contribution-status-wrap { width:100% !important; overflow:visible !important; }
+  .contribution-status-table { width:100% !important; table-layout:fixed !important; font-size:6.3pt !important; }
+  .contribution-status-table th,
+  .contribution-status-table td { padding:3px 2px !important; white-space:normal !important; overflow-wrap:anywhere !important; word-break:normal !important; }
+  .contribution-status-table th:nth-child(1) { width:15%; }
+  .contribution-status-table th:nth-child(2) { width:10.5%; }
+  .contribution-status-table th:nth-child(3) { width:10.5%; }
+  .contribution-status-table th:nth-child(4) { width:9%; }
+  .contribution-status-table th:nth-child(5) { width:10%; }
+  .contribution-status-table th:nth-child(6) { width:10%; }
+  .contribution-status-table th:nth-child(7) { width:10%; }
+  .contribution-status-table th:nth-child(8) { width:10%; }
+  .contribution-status-table th:nth-child(9) { width:15%; }
+  .contribution-status-table .member-cell span { display:block; overflow-wrap:anywhere; }
+
   a { text-decoration:none !important; color:inherit !important; }
 }
