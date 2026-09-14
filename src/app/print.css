@@ -1,0 +1,154 @@
+/* Professional A4 print standard for all CWMS printable documents */
+@page {
+  size: A4 portrait;
+  margin: 18mm 15mm 20mm 15mm;
+}
+
+@media print {
+  html, body {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    color: #172B4D !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .sidebar,
+  .topbar,
+  .filterbar,
+  .btn,
+  .statement-toolbar,
+  .statement-filter,
+  .receipt-actions {
+    display: none !important;
+  }
+
+  .main {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  .content {
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  /* A4 document surface */
+  .statement-document,
+  .receipt-paper {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+
+  /* Keep branded headers together. */
+  .statement-brandbar,
+  .receipt-header {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .statement-brandbar {
+    padding-top: 0 !important;
+  }
+
+  .receipt-paper:before,
+  .receipt-paper:after {
+    display: none !important;
+  }
+
+  /* Professional document footer. */
+  .statement-footer,
+  .receipt-footer {
+    display: flex !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-top: 24px !important;
+    padding-top: 9px !important;
+    border-top: 1px solid #CBD5E1 !important;
+    font-size: 8.5pt !important;
+  }
+
+  /* Reports use the existing statement title as their print header. */
+  .statement-title {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-end !important;
+    gap: 20px !important;
+    margin: 0 0 14px !important;
+    padding: 0 0 9px !important;
+    border-bottom: 2px solid #102A43 !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .statement-title:before {
+    content: "CHYUN WELFARE MANAGEMENT SYSTEM";
+    display: block;
+    font-size: 12pt;
+    font-weight: 900;
+    letter-spacing: .5px;
+    color: #102A43;
+  }
+
+  .statement-title h2 {
+    margin: 0 !important;
+    font-size: 16pt !important;
+  }
+
+  .statement-title > div {
+    font-size: 8.5pt !important;
+    color: #64748B !important;
+  }
+
+  /* Prevent awkward table/card splits and repeat table headings on new pages. */
+  table,
+  .panel,
+  .card,
+  .statement-section,
+  .summarygrid,
+  .receipt-table,
+  .receipt-balance,
+  .statement-member {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+
+  tr,
+  img {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .statement-document table,
+  .receipt-table {
+    width: 100% !important;
+  }
+
+  .statement-document .panel,
+  .receipt-balance {
+    box-shadow: none !important;
+  }
+
+  a {
+    text-decoration: none !important;
+    color: inherit !important;
+  }
+}
