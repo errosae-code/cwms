@@ -34,15 +34,14 @@
   .panel:has(.filterbar) { display:none !important; }
   .statement-title { display:grid !important; grid-template-columns:32mm 1fr !important; align-items:end !important; column-gap:8mm !important; margin:0 0 8px !important; padding:0 0 6px !important; border-bottom:2px solid #102A43 !important; break-inside:avoid; page-break-inside:avoid; }
   .statement-title:before { content:"CHYUN WELFARE"; display:block; font-size:11pt; font-weight:900; letter-spacing:.4px; color:#102A43; }
-  .statement-title h2 { margin:0 !important; font-size:15pt !important; line-height:1.15 !important; }
+  .statement-title h2 { margin:0 !important; font-size:15pt !important; line-height:1.15 !important; color:#102A43 !important; }
+  .statement-title h2:before { content:"FINANCIAL STATEMENT"; display:block; font-size:12pt; font-weight:900; letter-spacing:.6px; color:#102A43; margin-bottom:2px; }
   .statement-title > div { display:none !important; }
 
-  /* Keep the two cash-flow panels together exactly as they appear in the screen view. */
-  .grid2 { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:10px !important; width:100% !important; break-inside:avoid !important; page-break-inside:avoid !important; }
-  .grid2 > .panel { min-width:0 !important; break-inside:avoid !important; page-break-inside:avoid !important; }
-
-  /* Compact report sections while allowing long transaction tables to flow naturally. */
+  /* Do not force large report panels onto separate pages. Allow natural page flow
+     so the printed statement uses the A4 sheet efficiently without large blank areas. */
   .statement-document .panel,
+  .grid2 > .panel,
   .cards,
   .card,
   .statement-section,
@@ -50,10 +49,11 @@
   .transactions-panel,
   .contribution-status-panel { break-inside:auto !important; page-break-inside:auto !important; }
   .statement-document .panel { margin-top:8px !important; }
-  .cards { gap:8px !important; margin:8px 0 !important; grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
+  .cards { gap:8px !important; margin:8px 0 !important; }
   .card { padding:9px !important; min-height:0 !important; }
   .panel { padding:10px !important; }
   .panel h3 { margin:0 0 7px !important; font-size:10.5pt !important; }
+  .grid2 { gap:10px !important; }
   .summarygrid { gap:7px !important; }
   .summarygrid > div { padding:7px !important; }
   table { break-inside:auto !important; page-break-inside:auto !important; }
