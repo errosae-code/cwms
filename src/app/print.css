@@ -28,10 +28,14 @@
   .receipt-rule { display:none !important; }
   .statement-footer,.receipt-footer,.document-generated { display:flex !important; justify-content:space-between !important; align-items:flex-end !important; gap:20px !important; break-inside:avoid; page-break-inside:avoid; margin-top:24px !important; padding-top:9px !important; border-top:1px solid #CBD5E1 !important; font-size:8.5pt !important; }
   .receipt-paper .document-generated { margin-top:auto !important; padding-top:10px !important; width:100% !important; }
+
+  /* Financial statements should print as the document itself, not as a copy of the app screen. */
+  .pagehead { display:none !important; }
+  .panel:has(.filterbar) { display:none !important; }
   .statement-title { display:flex !important; justify-content:space-between !important; align-items:flex-end !important; gap:20px !important; margin:0 0 14px !important; padding:0 0 9px !important; border-bottom:2px solid #102A43 !important; break-inside:avoid; page-break-inside:avoid; }
   .statement-title:before { content:"CHYUN WELFARE"; display:block; font-size:12pt; font-weight:900; letter-spacing:.5px; color:#102A43; }
   .statement-title h2 { margin:0 !important; font-size:16pt !important; }
-  .statement-title > div { font-size:8.5pt !important; color:#64748B !important; }
+  .statement-title > div { display:none !important; }
   table,.panel,.card,.statement-section,.summarygrid,.receipt-table,.receipt-balance,.statement-member { break-inside:avoid; page-break-inside:avoid; }
   thead { display:table-header-group; }
   tfoot { display:table-footer-group; }
