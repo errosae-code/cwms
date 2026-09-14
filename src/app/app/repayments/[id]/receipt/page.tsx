@@ -21,7 +21,7 @@ export default async function RepaymentReceipt({params}:{params:Promise<{id:stri
   return <div className="receipt-page">
     <div className="receipt-actions"><Link href="/app/repayments" className="btn light">← Repayments</Link><PrintButton label="Print / Save PDF"/></div>
     <div className="receipt-paper">
-      <header className="receipt-header"><div><div className="receipt-brand">CHYUN WELFARE</div><div className="receipt-subtitle">Welfare Management System</div></div><div className="receipt-heading"><strong>REPAYMENT RECEIPT</strong><span>{r.receipt_no||"-"}</span></div></header>
+      <header className="receipt-header"><div><div className="receipt-brand">CHYUN WELFARE</div></div><div className="receipt-heading"><strong>REPAYMENT RECEIPT</strong><span>{r.receipt_no||"-"}</span></div></header>
       <div className="receipt-rule"/>
       <section className="receipt-meta"><div><span>Received From</span><strong>{member.full_name||"-"}</strong><small>{member.membership_no||"-"}</small></div><div><span>Payment Date</span><strong>{dateText(r.payment_date)}</strong></div><div><span>Loan No.</span><strong>{loan.loan_no||"-"}</strong></div><div><span>Loan Due Date</span><strong>{dateText(loan.due_date)}</strong></div><div><span>Loan Status</span><strong className="capitalize">{dueStatus}</strong></div></section>
       <section className="receipt-amount"><span>AMOUNT RECEIVED</span><strong>{money(Number(r.amount||0))}</strong></section>
@@ -29,7 +29,7 @@ export default async function RepaymentReceipt({params}:{params:Promise<{id:stri
       <section className="receipt-balance"><h3>Loan Balance After This Payment</h3><div><span>Outstanding Principal</span><strong>{money(outstandingPrincipal)}</strong></div><div><span>Outstanding Interest</span><strong>{money(outstandingInterest)}</strong></div><div className="balance-total"><span>Total Outstanding</span><strong>{money(outstandingPrincipal+outstandingInterest)}</strong></div></section>
       <p className="receipt-note">This receipt confirms the repayment recorded against the above loan. The balance shown is the balance immediately after this payment, based on repayments recorded up to this receipt.</p>
       <div className="document-approval"><div><span>Received By</span><div className="signature-line">Name / Signature</div></div><div><span>Verified By</span><div className="signature-line">Name / Signature</div></div><div><span>Member Signature</span><div className="signature-line">Signature</div></div></div>
-      <div className="document-generated"><span>Chyun Welfare Management System</span><span className="computer-generated">Computer-generated receipt • Generated {new Date().toLocaleDateString("en-KE")}</span></div>
+      <div className="document-generated"><span>CHYUN WELFARE</span><span className="computer-generated">Computer-generated receipt • Generated {new Date().toLocaleDateString("en-KE")}</span></div>
     </div>
   </div>;
 }
