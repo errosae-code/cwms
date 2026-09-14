@@ -33,9 +33,9 @@
   .pagehead { display:none !important; }
   .panel:has(.filterbar) { display:none !important; }
   .statement-title { display:grid !important; grid-template-columns:32mm 1fr !important; align-items:end !important; column-gap:8mm !important; margin:0 0 8px !important; padding:0 0 6px !important; border-bottom:2px solid #102A43 !important; break-inside:avoid; page-break-inside:avoid; }
-  .statement-title:before { content:"CHYUN WELFARE"; display:block; font-size:11pt; font-weight:900; letter-spacing:.4px; color:#102A43; }
+  .statement-title:before { content:"CHYUN WELFARE\A FINANCIAL STATEMENT"; white-space:pre; display:block; font-size:11pt; font-weight:900; line-height:1.35; letter-spacing:.4px; color:#102A43; }
   .statement-title h2 { margin:0 !important; font-size:15pt !important; line-height:1.15 !important; color:#102A43 !important; }
-  .statement-title h2:before { content:"FINANCIAL STATEMENT"; display:block; font-size:12pt; font-weight:900; letter-spacing:.6px; color:#102A43; margin-bottom:2px; }
+  .statement-title h2:before { display:none !important; content:none !important; }
   .statement-title > div { display:none !important; }
 
   /* Do not force large report panels onto separate pages. Allow natural page flow
