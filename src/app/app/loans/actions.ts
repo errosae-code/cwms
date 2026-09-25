@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 const S = z.object({ member_id:z.string().uuid(), principal:z.coerce.number().positive(), issue_date:z.string().min(1), due_date:z.string().min(1) });
@@ -31,6 +32,7 @@ export async function issueLoan(fd:FormData){
   if(error)throw new Error(error.message);
   await s.from("audit_logs").insert({organization_id:profile.organization_id,user_id:user.id,action:"loan.created",module:"loans",entity_id:item.id,description:`${item.loan_no}: KES ${p.principal}`});
   refresh();
+  redirect("/app/loans?saved=1");
 }
 
 export async function updateLoan(fd:FormData){
@@ -46,6 +48,7 @@ export async function updateLoan(fd:FormData){
   const {error}=await s.from("loans").update({member_id:p.member_id,principal:p.principal,interest_rate:rate,interest_amount:interest,total_due:p.principal+interest,outstanding_principal:outPrincipal,outstanding_interest:outInterest,issue_date:p.issue_date,due_date:p.due_date,status:statusFor(outPrincipal,outInterest,p.due_date),updated_at:new Date().toISOString()}).eq("id",id).eq("organization_id",profile.organization_id).is("deleted_at",null);
   if(error)throw new Error(error.message);
   await s.from("audit_logs").insert({organization_id:profile.organization_id,user_id:user.id,action:"loan.updated",module:"loans",entity_id:id,description:`Updated ${loan.loan_no}: principal KES ${p.principal}`});refresh();
+  redirect("/app/loans?saved=1");
 }
 
 export async function deleteLoan(fd:FormData){
